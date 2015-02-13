@@ -3,7 +3,7 @@
  *
  * The MIT License (MIT)
  *
- * Copyright (c) 2013, 2014 Damien P. George
+ * Copyright (c) 2015 Damien P. George
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,21 +24,28 @@
  * THE SOFTWARE.
  */
 
-#include "py/nlr.h"
-#include "py/obj.h"
-#include "readline.h"
+#ifndef __MICROPY_INCLUDED_STMHAL_USB_CDC_MSC_HID0_H__
+#define __MICROPY_INCLUDED_STMHAL_USB_CDC_MSC_HID0_H__
 
-STATIC mp_obj_t mp_builtin_input(uint n_args, const mp_obj_t *args) {
-    if (n_args == 1) {
-        mp_obj_print(args[0], PRINT_STR);
-    }
-    vstr_t line;
-    vstr_init(&line, 16);
-    int ret = readline(&line, "");
-    if (line.len == 0 && ret == CHAR_CTRL_D) {
-        nlr_raise(mp_obj_new_exception(&mp_type_EOFError));
-    }
-    return mp_obj_new_str_from_vstr(&mp_type_str, &line);
-}
+// these are exports for the CDC/MSC/HID interface that are independent
+// from any other definitions/declarations
 
-MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mp_builtin_input_obj, 0, 1, mp_builtin_input);
+// only CDC_MSC and CDC_HID are available
+typedef enum {
+    USBD_MODE_CDC = 0x01,
+    USBD_MODE_MSC = 0x02,
+    USBD_MODE_HID = 0x04,
+    USBD_MODE_CDC_MSC = 0x03,
+    USBD_MODE_CDC_HID = 0x05,
+    USBD_MODE_MSC_HID = 0x06,
+} usb_device_mode_t;
+
+typedef struct _USBD_HID_ModeInfoTypeDef {
+    uint8_t subclass; // 0=no sub class, 1=boot
+    uint8_t protocol; // 0=none, 1=keyboard, 2=mouse
+    uint8_t max_packet_len; // only support up to 255
+    uint8_t report_desc_len;
+    const uint8_t *report_desc;
+} USBD_HID_ModeInfoTypeDef;
+
+#endif // __MICROPY_INCLUDED_STMHAL_USB_CDC_MSC_HID0_H__
